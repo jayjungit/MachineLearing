@@ -8,7 +8,10 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 from sklearn import metrics
 import matplotlib.pyplot as plt
+from sklearn.model_selection import GridSearchCV
+import  warnings
 
+warnings.filterwarnings('ignore')
 
 # 使用方法一
 # X, y = datasets.load_wine(return_X_y=True)
@@ -90,13 +93,13 @@ def model_fit(model, dtrain, dtest, cols, useTrainCV=True, cv_folds=5, early_sto
     print('AUC(训练集)得分：%f' % metrics.roc_auc_score(dtrain[label], proba_))
 
     # 可视化特征的重要性
-    feature_img = pd.Series(model.get_booster().get_fscore()).sort_values(ascending=False)
-    feature_img.plot(kind='bar', title='Feature Importance')
-    plt.ylabel('Feature Importance Score')
-    plt.show()
+    # feature_img = pd.Series(model.get_booster().get_fscore()).sort_values(ascending=False)
+    # feature_img.plot(kind='bar', title='Feature Importance')
+    # plt.ylabel('Feature Importance Score')
+    # plt.show()
 
 
-xgb1 = XGBClassifier(learning_rate =0.1,
+xgb1 = XGBClassifier(learning_rate=0.1,
                      use_label_encoder=False,
                      n_estimators=1000,
                      max_depth=5,
@@ -104,12 +107,44 @@ xgb1 = XGBClassifier(learning_rate =0.1,
                      gamma=0,
                      subsample=0.8,
                      colsample_bytree=0.8,
-                     objective= 'binary:logistic',
+                     objective='binary:logistic',
                      nthread=4,
                      scale_pos_weight=1,
-                     reg_alpha = 0,
-                     eval_metric=['error','auc'],
-                     verbosity = 0)
-model_fit(xgb1, train, test, cols)
+                     reg_alpha=0,
+                     eval_metric=['error', 'auc'],
+                     verbosity=0)
+# model_fit(xgb1, train, test, cols)
+
+# 筛选最优参数一
+# param_grid = {"max_depth": range(2, 10, 2), 'min_child_weight': range(1, 6, 2)}
+# model = XGBClassifier(learning_rate=0.1, n_estimators=100, max_depth=5, use_label_encoder=False,
+#                       min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8,
+#                       objective='binary:logistic', nthread=4, scale_pos_weight=1, seed=27,
+#                       verbosity=0)
+# gsearch1 = GridSearchCV(estimator=model, param_grid=param_grid, scoring='roc_auc', n_jobs=-1, cv=5)
+# gsearch1.fit(train[cols], train[label])
+# print('本次最佳参数:', gsearch1.best_params_)
+# print('本次最优得分为:', gsearch1.best_score_)
 
 
+# 筛选参数二
+# param_grid = {'gamma': [i / 10.0 for i in range(0, 5)]}
+# model = XGBClassifier(learning_rate=0.1, n_estimators=100, max_depth=5, use_label_encoder=False,
+#                       min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8,
+#                       objective='binary:logistic', nthread=4, scale_pos_weight=1, seed=27,
+#                       verbosity=0)
+# gsearch2 = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5, scoring='roc_auc')
+# gsearch2.fit(train[cols], train[label])
+# print('本次最优参数为：', gsearch2.best_params_)
+# print('本次最优得分为：', gsearch2.best_score_)
+
+# 筛选参数三
+param_grid = {'subsample': [i/10.0 for i in range(6, 10)], 'colsample_bytree': [i/10.0 for i in range(6, 10)]}
+model = XGBClassifier(learning_rate=0.1, n_estimators=100, max_depth=5, use_label_encoder=False,
+                      min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8,
+                      objective='binary:logistic', nthread=4, scale_pos_weight=1, seed=27,
+                      verbosity=0)
+gsearch3 = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=4, cv=5, scoring='roc_auc')
+gsearch3.fit(train[cols], train[label])
+print('本次最优参数为：', gsearch3.best_params_)
+print('本次最优得分为：', gsearch3.best_score_)
