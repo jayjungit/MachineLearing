@@ -138,13 +138,15 @@ xgb1 = XGBClassifier(learning_rate=0.1,
 # print('本次最优参数为：', gsearch2.best_params_)
 # print('本次最优得分为：', gsearch2.best_score_)
 
+
 # 筛选参数三
-param_grid = {'subsample': [i/10.0 for i in range(6, 10)], 'colsample_bytree': [i/10.0 for i in range(6, 10)]}
+param_grid = {'subsample': [i/10 for i in range(0, 10)], 'closample_bytree': [i/10 for i in range(0, 10)]}
 model = XGBClassifier(learning_rate=0.1, n_estimators=100, max_depth=5, use_label_encoder=False,
                       min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8,
                       objective='binary:logistic', nthread=4, scale_pos_weight=1, seed=27,
                       verbosity=0)
-gsearch3 = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=4, cv=5, scoring='roc_auc')
+
+gsearch3 = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5, scoring='roc_auc')
 gsearch3.fit(train[cols], train[label])
-print('本次最优参数为：', gsearch3.best_params_)
-print('本次最优得分为：', gsearch3.best_score_)
+print('本次最优的参数为：', gsearch3.best_params_)
+print('本次最优的分数为：', gsearch3.best_score_)
